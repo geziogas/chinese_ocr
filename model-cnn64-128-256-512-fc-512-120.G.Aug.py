@@ -27,8 +27,6 @@ iv, xv, yv = val_data.shape
 
 # input image dimensions
 img_rows, img_cols = x, y
-# number of convolutional filters to use
-nb_filters = 32
 # size of pooling area for max pooling
 nb_pool = 2
 # convolution kernel size
@@ -111,112 +109,135 @@ Y_test = np.load('Y_test-from85-120-Augmented.npy')
 Y_val = np.load('Y_val-from85-120-Augmented.npy')
 
 
-
-def build_model():
-    """ Convolutional Neural Network Model
-
-    This model consists of 4 Conv-Relu-MaxPool layers and 2 Fully Connected layers.
-    Fully Connected 1, has also a Dropout layer.
-
-    Params:
-        nb_conv: Dim of conv filter
-        img_rows: Input image height
-        img_cols: Input image width
-
+class CnnModel():
+    """ Implementation of our CNN model
     """
 
-    model = Sequential()
+    def __init__(self):
+        self.model = Sequential()
 
-    # Layer 1
-    model.add(Convolution2D(64, nb_conv, nb_conv,
-                            border_mode='same',
-                            input_shape=(1, img_rows, img_cols)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+    def set_params(self, nb_conv, img_rows, img_cols, nb_pool, nb_classes):
+        self.nb_classes = nb_classes
+        self.nb_conv = nb_conv
+        self.nb_pool = nb_pool
+        self.img_rows = img_rows
+        self.img_cols = img_rows
 
-    # Layer 2
-    model.add(Convolution2D(128, nb_conv, nb_conv,
-                            border_mode='same',
-                            input_shape=(1, img_rows, img_cols)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+    def build_model(self):
+        """ Convolutional Neural Network Model
 
-    # Layer 3
-    model.add(Convolution2D(256, nb_conv, nb_conv,
-                            border_mode='same',
-                            input_shape=(1, img_rows, img_cols)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+        This model consists of 4 Conv-Relu-MaxPool layers and 2 Fully Connected layers.
+        Fully Connected 1, has also a Dropout layer.
 
-    # Layer 4
-    model.add(Convolution2D(512, nb_conv, nb_conv,
-                            border_mode='same',
-                            input_shape=(1, img_rows, img_cols)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+        Params:
+            nb_conv: Dim of conv filter
+            img_rows: Input image height
+            img_cols: Input image width
 
-    # Fully Connected 1
-    model.add(Flatten())
-    model.add(Dense(512))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
+        """
+        # Layer 1
+        self.model.add(Convolution2D(64, self.nb_conv, self.nb_conv,
+                                border_mode='same',
+                                input_shape=(1, self.img_rows, self.img_cols)))
+        self.model.add(Activation('relu'))
+        self.model.add(MaxPooling2D(pool_size=(self.nb_pool, self.nb_pool)))
 
-    # Fully Connected 2
-    model.add(Dense(nb_classes))
-    model.add(Activation('softmax'))
+        # Layer 2
+        self.model.add(Convolution2D(128, self.nb_conv, self.nb_conv,
+                                border_mode='same',
+                                input_shape=(1, self.img_rows, self.img_cols)))
+        self.model.add(Activation('relu'))
+        self.model.add(MaxPooling2D(pool_size=(self.nb_pool, self.nb_pool)))
 
-    return model
+        # Layer 3
+        self.model.add(Convolution2D(256, self.nb_conv, self.nb_conv,
+                                border_mode='same',
+                                input_shape=(1, self.img_rows, self.img_cols)))
+        self.model.add(Activation('relu'))
+        self.model.add(MaxPooling2D(pool_size=(self.nb_pool, self.nb_pool)))
 
-def save_model_arch(model):
-    """ Save CNN model.
+        # Layer 4
+        self.model.add(Convolution2D(512, self.nb_conv, self.nb_conv,
+                                border_mode='same',
+                                input_shape=(1, self.img_rows, self.img_cols)))
+        self.model.add(Activation('relu'))
+        self.model.add(MaxPooling2D(pool_size=(self.nb_pool, self.nb_pool)))
 
-    Saves the model that was saved in JSON format.
-    """
-    json_string = model.to_json()
-    open('CNN32-64-128-256-3-FC-256-30.json', 'w').write(json_string) 
+        # Fully Connected 1
+        self.model.add(Flatten())
+        self.model.add(Dense(512))
+        self.model.add(Activation('relu'))
+        self.model.add(Dropout(0.5))
 
-def load_model_arch(model):
-    """ Load CNN model.
+        # Fully Connected 2
+        self.model.add(Dense(self.nb_classes))
+        self.model.add(Activation('softmax'))
 
-    Loads the model that was saved in JSON format
-    """
-    model = model_from_json(open('CNN-64-128-256-3-FC-1024-30.json').read())
-    return model
+    def save_model_arch(self):
+        """ Save CNN model.
 
-def save_model_weights(model):
-    """ Save CNN model weights.
+        Saves the model that was saved in JSON format.
+        """
+        json_string = self.model.to_json()
+        open('CNN32-64-128-256-3-FC-256-30.json', 'w').write(json_string) 
 
-    Saves the model that was saved in h5 format.
-    """
-    model.save_weights('cnn64-128-256-512-fc-512-120e50b50.G.Aug.120c-weights.h5', overwrite=True)
+    def load_model_arch(self):
+        """ Load CNN model.
 
-def load_model_weights(model):
-    """ Load CNN model.
+        Loads the model that was saved in JSON format
+        """
+        self.model = model_from_json(open('CNN-64-128-256-3-FC-1024-30.json').read())
+        return self.model
 
-    Loads the model that was saved in JSON format
-    """
-    model.load_weights('CNN-64-128-256-3-FC-1024-30-weights.h5')
-    return model
+    def save_model_weights(self):
+        """ Save CNN model weights.
 
-model = build_model()
+        Saves the model that was saved in h5 format.
+        """
+        self.model.save_weights('cnn64-128-256-512-fc-512-120e50b50.G.Aug.120c-weights.h5', overwrite=True)
 
-# Adadelta optimizer
-model.compile(loss='categorical_crossentropy',
-              optimizer='adadelta',
-              metrics=['accuracy'])
+    def load_model_weights(self):
+        """ Load CNN model.
 
-history = model.fit(train_data, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
-          verbose=2, validation_data=(val_data, Y_val))
-
-history2 = np.asarray(history.history)
-np.save('cnn64-128-256-512-fc-512-120e50b50.G.Aug.120c.history.npy', history2)
+        Loads the model that was saved in JSON format
+        """
+        self.model.load_weights('CNN-64-128-256-3-FC-1024-30-weights.h5')
+        return self.model
 
 
-def evaluate_test_data(model, test_data, Y_test):
-    score = model.evaluate(test_data, Y_test, verbose = 0)
-    print('Test score:', score[0])
-    print('Test accuracy:', score[1])
+    def evaluate_test_data(self, test_data, Y_test):
+        score = self.model.evaluate(test_data, Y_test, verbose = 0)
+        print('Test score:', score[0])
+        print('Test accuracy:', score[1])
 
+
+    def compile_fit_model(self, opt):
+        """ Compile and fit the CNN model.
+        Also, saves the history into a numpy array
+        """
+
+        self.model.compile(loss = 'categorical_crossentropy',
+                    optimizer = opt,
+                    metrics = ['accuracy'])
+
+        history = self.model.fit(train_data, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+                verbose=2, validation_data=(val_data, Y_val))
+
+        history2 = np.asarray(history.history)
+        np.save('cnn64-128-256-512-fc-512-120e50b50.G.Aug.120c.history.npy', history2)
+        return self.model
+
+    def get_model(self):
+        """ Returns the CNN model
+        """
+        return self.model
+
+
+model = CnnModel()
+model.set_params(nb_conv, img_rows, img_cols, nb_pool, nb_classes)
+model.build_model()
+model.compile_fit_model('adadelta')
+model.evaluate_test_data(test_data, Y_test)
 
 # Example
 s = model.predict(test_data[0:20]) #predict
@@ -229,10 +250,11 @@ res = np.argmax(s, axis=1) #return the indices of labels
 #     ',Predicted:',l_unique_trn[res[i]],'Class:',\
 #     res[i],',Result:',reY_test[i]==res[i])
 
-
+def plot_
 
 # np.where(labToNum_trn==23)
 # np.where(reY_test==23)
+
 # # 1-by-1 image check
 # plt.subplot(1,3,1)
 # plt.imshow(test_data[3,0,:,:],cmap='Greys_r',title='A')
