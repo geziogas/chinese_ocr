@@ -3,7 +3,7 @@ Project:  Recognizing Handwritten Chinese Characters Using CNN
 Author:   Georgios Ziogas
 Module:   Image parsing
 """
-from . import extraction
+
 import os
 import glob
 import numpy, scipy.misc
@@ -204,7 +204,7 @@ class GntExtractor(object):
         im = Image.fromarray(matrix, mode='L') # 8bit grayscale
         index_file = open('index-labels.txt','w+')
         index_file.write(f"{count} {label}\n")
-        index_file.write(f"{label}\n")
+#        index_file.write(f"{label}\n")
         index_file.close()
         if not os.path.exists('tmp'):
             os.makedirs('tmp')
@@ -212,7 +212,14 @@ class GntExtractor(object):
         im.save(name)
 
 
-def main():
+def run():
+    """ run 
+
+    1. Extract images from gnt files
+    2. Set image params
+    3. Convert to numpy array
+    """
+
     gnt_extractor = GntExtractor()
     # normal or bw, 240 threshold
     gnt_extractor.set_image_params("normal", 240)
@@ -223,4 +230,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    run()
