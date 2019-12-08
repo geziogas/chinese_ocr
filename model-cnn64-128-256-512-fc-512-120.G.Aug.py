@@ -1,7 +1,5 @@
 from __future__ import print_function
-np.random.seed(1337)  # for reproducibility
 
-import h5py
 import h5py
 import numpy as np
 import pandas as pd
@@ -11,15 +9,29 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD
 from keras.utils import np_utils
 from keras.models import model_from_json
+import os
+
+np.random.seed(1337)  # for reproducibility
 
 
-train_data = np.load('HWDB1.1trn_gnt/AUG/120-class-trainset-shuffled-augmented-shuffled.npy')
-test_data = np.load('HWDB1.1tst_gnt/120-class-testset-shuffled.npy')
-val_data = np.load('HWDB1.1trn_gnt/120-class-original-shuffled-valset.npy')
+root = r"I:\NEW THESIS BU NOVEMBER\Deep Learning Thesis\120-class-dataset"
+train_data_path = 'HWDB1.1trn_gnt/AUG/120-class-trainset-shuffled-augmented-shuffled.npy'
+test_data_path = 'HWDB1.1tst_gnt/120-class-testset-shuffled.npy'
+val_data_path = 'HWDB1.1trn_gnt/120-class-original-shuffled-valset.npy'
+#os.path.join(path, train_data_path)
 
-train_labels = np.load('HWDB1.1trn_gnt/AUG/120-class-trainlabels-shuffled-augmented-shuffled.npy')
-test_labels = np.load('HWDB1.1tst_gnt/120-class-testlabels-shuffled.npy')
-val_labels = np.load('HWDB1.1trn_gnt/120-class-original-shuffled-vallabels.npy')
+train_data = np.load(os.path.join(root, train_data_path))
+test_data = np.load(os.path.join(root, test_data_path))
+val_data = np.load(os.path.join(root, val_data_path))
+
+
+train_labels_path = 'HWDB1.1trn_gnt/AUG/120-class-trainlabels-shuffled-augmented-shuffled.npy'
+test_labels_path = 'HWDB1.1tst_gnt/120-class-testlabels-shuffled.npy'
+val_labels_path = 'HWDB1.1trn_gnt/120-class-original-shuffled-vallabels.npy'
+
+train_labels = np.load(os.path.join(root, train_labels_path))
+test_labels = np.load(os.path.join(root, test_labels_path))
+val_labels = np.load(os.path.join(root, val_labels_path))
 
 ind, x, y = train_data.shape
 it, xt, yt = test_data.shape
@@ -104,9 +116,9 @@ np.save('Y_test-from85-120-Augmented.npy', Y_test)
 np.save('Y_val-from85-120-Augmented.npy', Y_val)
 
 # From Augmentation
-Y_train = np.load('Y_train-from85-120-Augmented.npy')
-Y_test = np.load('Y_test-from85-120-Augmented.npy')
-Y_val = np.load('Y_val-from85-120-Augmented.npy')
+Y_train = np.load(os.path.join(root,'Y_train-from85-120-Augmented.npy'))
+Y_test = np.load(os.path.join(root,'Y_test-from85-120-Augmented.npy'))
+Y_val = np.load(os.path.join(root,'Y_val-from85-120-Augmented.npy'))
 
 
 class CnnModel():
@@ -138,6 +150,7 @@ class CnnModel():
         # Layer 1
         self.model.add(Convolution2D(64, self.nb_conv, self.nb_conv,
                                 border_mode='same',
+                                data_format='channels_firsts',
                                 input_shape=(1, self.img_rows, self.img_cols)))
         self.model.add(Activation('relu'))
         self.model.add(MaxPooling2D(pool_size=(self.nb_pool, self.nb_pool)))
@@ -211,7 +224,7 @@ class CnnModel():
         print('Test accuracy:', score[1])
 
 
-    def compile_fit_model(self, opt):
+    def compile_model(self, opt):
         """ Compile and fit the CNN model.
         Also, saves the history into a numpy array
         """
@@ -219,6 +232,11 @@ class CnnModel():
         self.model.compile(loss = 'categorical_crossentropy',
                     optimizer = opt,
                     metrics = ['accuracy'])
+        
+    def fit_model(self, batch_size, nb_epoch, train_data, Y_train, val_data, Y_val):
+        """ Compile and fit the CNN model.
+        Also, saves the history into a numpy array
+        """
 
         history = self.model.fit(train_data, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
                 verbose=2, validation_data=(val_data, Y_val))
@@ -236,7 +254,8 @@ class CnnModel():
 model = CnnModel()
 model.set_params(nb_conv, img_rows, img_cols, nb_pool, nb_classes)
 model.build_model()
-model.compile_fit_model('adadelta')
+model.compile_model('adadelta')
+model.fit_model(batch_size, nb_epoch, train_data, Y_train, val_data, Y_val)
 model.evaluate_test_data(test_data, Y_test)
 
 # Example
@@ -249,8 +268,6 @@ res = np.argmax(s, axis=1) #return the indices of labels
 #     print(i,test_labels[i],'Class:',reY_test[i],\
 #     ',Predicted:',l_unique_trn[res[i]],'Class:',\
 #     res[i],',Result:',reY_test[i]==res[i])
-
-def plot_
 
 # np.where(labToNum_trn==23)
 # np.where(reY_test==23)
